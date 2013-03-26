@@ -67,11 +67,9 @@
 (defmacro defattr [name args & body]
   `(def ~name (attr-fn ~(keyword name) (fn ~name ~args ~@body))))
 
-;;; intrinsics
-
 (defattr parent [node]
   (let [p (-path node)]
-    (when (seq p)
+    (when (seq p) ;;TODO better implementation now that we have Trees ?
       (Node. (-tree node) (pop p)))))
 
 (defattr root? [node]
@@ -80,43 +78,3 @@
 (defattr child [node key]
   (when (contains? @node key)
     (Node. (-tree node) (conj (-path node) key))))
-
-;;; repmin tree
-
-(defattr value [node]
-  (:value @node))
-
-(defattr left [node]
-  (child node :left))
-
-(defattr right [node]
-  (child node :right))
-
-(defattr lmin [node]
-  (or (value node)
-      (min (-> node left lmin) (-> node right lmin))))
-
-(defattr gmin [node]
-  (if (root? node)
-    (lmin node)
-    (-> node parent gmin)))
-
-(defattr ret [node]
-  (if (value node)
-    {:value (gmin node)}
-    {:left (-> node left ret) :right (-> node right ret)}))
-
-(comment
-
-  (def foo {:left {:value 2}
-            :right {:left {:value 1}
-                    :right {:value 3}}})
-
-  (let [bar (tree foo)]
-    (ret bar)
-    (println "----------")
-    (ret bar)
-    (clojure.pprint/pprint @(-cache bar))
-    )
-
-)
