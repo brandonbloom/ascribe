@@ -46,10 +46,21 @@
   (fn [node & args]
     (assert (node? node) "Attribute fn must be applied to a node")
     (binding [*depth* (inc *depth*)]
-      (when *trace*
-        (print (apply str (repeat (* 2 *depth*) \space)))
-        (println kw "@" (-path node)))
-      (apply f node args))))
+      (let [p (-path node)
+            cache (-cache (-tree node))
+            cache-key [p kw (vec args)]
+            cached (get @cache cache-key ::miss)
+            cached? (not= cached ::miss)]
+        (when *trace*
+          (print (apply str (repeat (* 2 *depth*) \space)))
+          (when cached?
+            (print "CACHED! "))
+          (println kw "@" p))
+        (if cached?
+          cached
+          (let [ret (apply f node args)]
+            (swap! cache assoc cache-key ret)
+            ret))))))
 
 (defmacro defattr [name args & body]
   `(def ~name (attr-fn ~(keyword name) (fn ~name ~args ~@body))))
@@ -99,9 +110,11 @@
             :right {:left {:value 1}
                     :right {:value 3}}})
 
-  (-> foo
-      tree
-      ret
+  (let [bar (tree foo)]
+    (ret bar)
+    (println "----------")
+    (ret bar)
+    (clojure.pprint/pprint @(-cache bar))
     )
 
 )
