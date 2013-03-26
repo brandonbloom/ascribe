@@ -1,24 +1,42 @@
 (ns ascribe.core)
 
-(defprotocol INodeRef
+(defprotocol ITree
   (-root [this])
+  (-cache [this]))
+
+(defprotocol INode
+  (-tree [this])
   (-path [this]))
 
-;; Consider:
-; references          the remote tree node
-; absolute paths      full path to a node
-; relative paths      relative to current node
-; computed paths      something like a name
-(deftype NodeRef [root path]
+(deftype Tree [root cache]
+  clojure.lang.IDeref
+  (deref [_] root)
+  INode
+  (-tree [this] this)
+  (-path [_] [])
+  ITree
+  (-root [_] root)
+  (-cache [_] cache))
+
+(defn tree [root]
+  (Tree. root (atom {})))
+
+(defn root [node]
+  (-root (-tree node)))
+
+(deftype Node [tree path]
   clojure.lang.IDeref
   (deref [_]
-    (get-in root path))
-  INodeRef
-  (-root [_] root)
+    (get-in (-root tree) path))
+  INode
+  (-tree [_] tree)
   (-path [_] path))
 
-(defn tree [x]
-  (NodeRef. x []))
+(defn tree? [x]
+  (satisfies? ITree x))
+
+(defn node? [x]
+  (satisfies? INode x))
 
 (def ^:dynamic *depth* -1)
 
@@ -26,7 +44,7 @@
 
 (defn attr-fn [kw f]
   (fn [node & args]
-    (assert (instance? NodeRef node) "Attribute fn must be applied to a node")
+    (assert (node? node) "Attribute fn must be applied to a node")
     (binding [*depth* (inc *depth*)]
       (when *trace*
         (print (apply str (repeat (* 2 *depth*) \space)))
@@ -41,14 +59,14 @@
 (defattr parent [node]
   (let [p (-path node)]
     (when (seq p)
-      (NodeRef. (-root node) (pop p)))))
+      (Node. (-tree node) (pop p)))))
 
 (defattr root? [node]
   (nil? (parent node)))
 
 (defattr child [node key]
   (when (contains? @node key)
-    (NodeRef. (-root node) (conj (-path node) key))))
+    (Node. (-tree node) (conj (-path node) key))))
 
 ;;; repmin tree
 
