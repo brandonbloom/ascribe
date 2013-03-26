@@ -41,6 +41,7 @@
 (def ^:dynamic *depth* -1)
 
 (def ^:dynamic *trace* false)
+(def ^:dynamic *cache* true)
 
 (defn attr-fn [kw f]
   (fn [node & args]
@@ -55,11 +56,12 @@
           (print (apply str (repeat (* 2 *depth*) \space)))
           (when cached?
             (print "CACHED! "))
-          (println kw "@" p))
+          (println kw (vec args) "@" p))
         (if cached?
           cached
           (let [ret (apply f node args)]
-            (swap! cache assoc cache-key ret)
+            (when *cache*
+              (swap! cache assoc cache-key ret))
             ret))))))
 
 (defmacro defattr [name args & body]
