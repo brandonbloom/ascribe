@@ -1,9 +1,5 @@
 (ns ascribe.core)
 
-(def foo {:left {:value 2}
-          :right {:left {:value 1}
-                  :right {:value 3}}})
-
 (defprotocol INodeRef
   (-root [this])
   (-path [this]))
@@ -20,6 +16,9 @@
   INodeRef
   (-root [_] root)
   (-path [_] path))
+
+(defn tree [x]
+  (NodeRef. x []))
 
 (def ^:dynamic *depth* -1)
 
@@ -78,10 +77,13 @@
 
 (comment
 
-  (-> (NodeRef. foo [])
-    (child :right)
-    (child :right)
-    (child :right)
+  (def foo {:left {:value 2}
+            :right {:left {:value 1}
+                    :right {:value 3}}})
+
+  (-> foo
+      tree
+      ret
     )
 
 )
