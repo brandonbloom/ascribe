@@ -5,11 +5,11 @@ A Clojure library providing Dynamic Reference Attribute Grammars.
 
 ## Status
 
-During the development of [Fipp](github.com/brandonbloom/fipp), I stumbled upon
-[Kiama](code.google.com/p/kiama/).  Fipp and Kiama provide a pretty printer
+During the development of [Fipp](https://github.com/brandonbloom/fipp), I stumbled upon
+[Kiama](https://code.google.com/p/kiama/).  Fipp and Kiama provide a pretty printer
 built on some of the same research.  Kiama, however, also provides libraries for
 tree rewriting and attribute grammars.  After completing Fipp, I decided to study both of
-those areas of computer science.  My project [Retree](github.com/brandonbloom/retree)
+those areas of computer science.  My project [Retree](https://github.com/brandonbloom/retree)
 is a direct port of Kiama's rewrite combinators.  However, I decided to conduct
 more research before tackling an implementation of attribute grammars.
 
