@@ -15,7 +15,7 @@ more research before tackling an implementation of attribute grammars.
 
 Torbjörn Ekman's thesis stood out among the literature:
 [Extensible Compiler Construction](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.100.6085).
-Guided by this work, I build this prototype of Ascribe
+Guided by this work, I built this prototype of Ascribe
 [as it stands today](https://github.com/brandonbloom/ascribe/tree/6e13169d2077933e1a4f661e68880323c6a40705).
 
 Then I stumbled upon [racr](https://code.google.com/p/racr/).  This has *a lot* in common
