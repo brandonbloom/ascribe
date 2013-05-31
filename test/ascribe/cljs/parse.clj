@@ -3,8 +3,15 @@
 
 (declare parse-form)
 
+(deftype TaggedLiteral [ast]
+  clojure.lang.IMeta
+  (meta [_] nil)
+  clojure.lang.IObj
+  (withMeta [_ meta]
+    (TaggedLiteral. (assoc ast :meta meta))))
+
 (defn parse-tagged [tag form]
-  (reduced (assoc (parse-form form) :tag tag)))
+  (TaggedLiteral. {:tag tag :literal (parse-form form)}))
 
 (defn classify-composite [x]
   (cond
@@ -14,8 +21,8 @@
     (vector? x) :vector))
 
 (defn parse-form [form]
-  (if (reduced? form)
-    @form
+  (if (instance? TaggedLiteral form)
+    (.ast ^TaggedLiteral form)
     (cond->
       (if-let [composite (classify-composite form)]
         {:composite composite :elements (mapv parse-form form)}
@@ -31,6 +38,10 @@
 
   (fipp.edn/pprint
     (parse-string "^:foo [{:x 'y} {:z #tagged w} 123]")
+  )
+
+  (fipp.edn/pprint
+    (parse-string "^:foo #tag ^:bar []")
   )
 
 )
