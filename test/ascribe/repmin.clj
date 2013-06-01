@@ -1,5 +1,5 @@
 (ns ascribe.repmin
-  (:require [ascribe.core :refer (defattr tree parent child root?)]))
+  (:require [ascribe.core :refer (defattr defsplice tree parent child root?)]))
 
 (defattr value [node]
   (:value @node))
@@ -24,23 +24,34 @@
     {:value (gmin node)}
     {:left (-> node left ret) :right (-> node right ret)}))
 
+(defsplice ret2 [node]
+  (if (value node)
+    {:value (gmin node)}
+    {:left @(-> node left ret2) :right @(-> node right ret2)}))
+
 (comment
 
-  (def foo {:left {:value 2}
-            :right {:left {:value 1}
-                    :right {:value 3}}})
+  (def t (tree {:left {:value 2}
+                :right {:left {:value 1}
+                        :right {:value 3}}}))
 
-  (let [bar (tree foo)]
-    (ret bar)
-    (println "----------")
-    (ret bar)
-    ;(clojure.pprint/pprint @(-cache bar))
-  )
+  (-> t)
+  (-> t deref)
+
+  (-> t ret)
+  (-> t left)
+  (-> t lmin)
+  (-> t right ret)
+  (-> t left lmin)
+
+  (-> t ret2)
+  (-> t ret2 right right deref)
+
+  (clojure.pprint/pprint @(-cache bar))
 
   ;;TODO ideas from kiama:
   ;; circular attributes
-  ;; higher-order trees
+  ;; higher-order trees <- sorta have this now, need forrest cache
   ;; attribute forwarding
-  ;; tree splicing
 
 )

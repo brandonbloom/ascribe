@@ -1,6 +1,6 @@
 (ns ascribe.core-test
-  (:use clojure.test
-        ascribe.core))
+  (:use clojure.test)
+  (:require [ascribe.core :as a :refer (defattr)]))
 
 (deftest a-test
   (testing "FIXME, I fail."
