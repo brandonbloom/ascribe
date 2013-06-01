@@ -1,5 +1,4 @@
-(ns ascribe.cljs.parse
-  (:require [ascribe.core :refer (defattr tree parent child root?)]))
+(ns ascribe.cljs.parse)
 
 (declare parse-form)
 
@@ -25,7 +24,7 @@
     (.ast ^TaggedLiteral form)
     (cond->
       (if-let [composite (classify-composite form)]
-        {:composite composite :elements (mapv parse-form form)}
+        {:composite composite :items (mapv parse-form form)}
         {:value form})
       (meta form) (assoc :meta (meta form)))))
 
@@ -42,6 +41,10 @@
 
   (fipp.edn/pprint
     (parse-string "^:foo #tag ^:bar []")
+  )
+
+  (fipp.edn/pprint
+    (parse-string "'1")
   )
 
 )
