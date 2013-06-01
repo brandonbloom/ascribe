@@ -78,3 +78,6 @@
 (defattr child [node key]
   (when (contains? @node key)
     (Node. (-tree node) (conj (-path node) key))))
+
+(defattr child-node? [node]
+  (not (root? node)))
