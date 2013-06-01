@@ -72,6 +72,12 @@
   (when (contains? @node key)
     (Node. (proto/-tree node) (conj (proto/-path node) key))))
 
+(defattr elements [node]
+  (let [t (proto/-tree node)
+        p (proto/-path node)]
+    (for [i (range (count @node))]
+      (Node. t (conj p i)))))
+
 (defattr child-node? [node]
   (not (root? node)))
 
