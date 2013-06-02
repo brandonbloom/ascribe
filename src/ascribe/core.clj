@@ -1,4 +1,5 @@
 (ns ascribe.core
+  (:refer-clojure :exclude [empty?])
   (:require [ascribe.protocols :as proto]))
 
 (def ^:dynamic *depth* -1)
@@ -75,6 +76,9 @@
 (defattr children-count [node]
   (count @node))
 
+(defattr empty? [node]
+  (clojure.core/empty? @node))
+
 (defattr first-child [node]
   (child node 0))
 
@@ -99,13 +103,22 @@
     (for [i (range (count @node))]
       (Node. t (conj p i)))))
 
+(defattr map-children [node f & args]
+  (if (empty? node)
+    node
+    (loop [child (first-child node)]
+      (let [child* (apply f child args)] ;TODO auto splice?
+        (if-let [next-child (right child*)]
+          (recur next-child)
+          (parent child*))))))
+
 (defattr child-node? [node]
   (not (root? node)))
 
 (defn splice [at x]
   (let [value (if (node? x) @x x)
         p (proto/-path at)]
-    (if (empty? p)
+    (if (clojure.core/empty? p)
       (tree value)
       (Node. (tree (assoc-in (root at) p value)) p))))
 
