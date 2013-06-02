@@ -39,7 +39,7 @@
 
 (defn attr-fn [name f]
   (fn [node & args]
-    (assert (node? node) "Attribute fn must be applied to a node")
+    (assert (node? node) (str name " must be applied to a node"))
     (binding [*depth* (inc *depth*)]
       (let [p (proto/-path node)
             cache (proto/-cache (proto/-tree node))
@@ -59,7 +59,8 @@
             ret))))))
 
 (defmacro defattr [name args & body]
-  `(def ~name (attr-fn ~name (fn ~name ~args ~@body))))
+  (let [qualified-name (symbol (str (.name *ns*)) (str name))]
+    `(def ~name (attr-fn '~qualified-name (fn ~name ~args ~@body)))))
 
 (defattr parent [node]
   (let [p (proto/-path node)]
@@ -103,6 +104,18 @@
     (for [i (range (count @node))]
       (Node. t (conj p i)))))
 
+(defn- keys* [x]
+  (cond
+    (map? x) (keys x)
+    (vector? x) (range (count x))))
+
+(defattr children [node]
+  (let [t (proto/-tree node)
+        p (proto/-path node)]
+    (for [k (keys* @node)]
+      (Node. t (conj p k)))))
+
+;;TODO: refine to support map as well as vector children
 (defattr map-children [node f & args]
   (if (empty? node)
     node
