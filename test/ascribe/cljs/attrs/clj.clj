@@ -25,7 +25,7 @@
   (let [x (-> @call :items first :value)]
     (if (special-symbol? x)
       x
-      (var-named x))))
+      (var-named call x))))
 
 (declare quoted?)
 
@@ -57,9 +57,6 @@
          (or (quoter? p)
              (quoted? p)))))
 
-(defattr expanded? [node]
-  (not (macro-call? node)))
-
 ;;TODO find better name. ambiguous: symbol-namespace vs node-is-in-namespace
 (defattr namespace [node]
   ;;TODO get this from the ns form
@@ -75,35 +72,34 @@
     (binding [*ns* (namespace node)]
       (parse-form (apply mac form env (rest form))))))
 
-;(defsplice expanded [node]
-;  (loop [node node]
-;    (if (expanded? node)
-;      (expand-children node)
-;      (recur (expand-node node)))))
+(declare expanded)
 
-;(defattr fully-expanded? [node]
-;  (and (expanded? node)
-;       (every? fully-expanded? (children node))))
-;
-;(defattr macroexpanded [node]
-;  (transformed [node
-;  (if (? node)
-;    node
-;    (recur (expansion node))))
+(defsplice expanded-children [node]
+  (cond
+    (quoted? node) node
+    (macro-call? node) node
+    (edn/composite? node) (-> (a/child node :items)
+                              (a/map-children expanded)
+                              a/parent)
+    :else node))
+
+(defsplice expanded [node]
+  (loop [node node]
+    (if (macro-call? node)
+      (recur (expanded1 node))
+      (expanded-children node))))
 
 
 (comment
 
-  (require '[ascribe.cljs.parse])
-
   (defn parse [form]
-    (a/tree (ascribe.cljs.parse/parse-form form)))
+    (a/tree (parse-form form)))
 
   (->
-    '(let [x 1] x)
+    '(let [x 1] (let [y 2] (* x y)))
     parse
-    expanded1
-    ;edn/form
+    expanded
+    edn/form
   )
 
 )
