@@ -72,6 +72,27 @@
   (when (contains? @node key)
     (Node. (proto/-tree node) (conj (proto/-path node) key))))
 
+(defattr children-count [node]
+  (count @node))
+
+(defattr first-child [node]
+  (child node 0))
+
+(defattr last-child [node]
+  (child node (dec (children-count node))))
+
+(defattr left [node]
+  (let [path (proto/-path node)
+        sibling-index (dec (peek path))]
+    (when (<= 0 sibling-index)
+      (Node. (proto/-tree node) (conj (pop path) sibling-index)))))
+
+(defattr right [node]
+  (let [path (proto/-path node)
+        sibling-index (inc (peek path))]
+    (when (< sibling-index (children-count (parent node)))
+      (Node. (proto/-tree node) (conj (pop path) sibling-index)))))
+
 (defattr elements [node]
   (let [t (proto/-tree node)
         p (proto/-path node)]
