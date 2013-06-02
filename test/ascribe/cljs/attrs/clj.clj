@@ -10,6 +10,7 @@
 ;  (-children node))
 
 (defn macro? [x]
+  ;;TODO consider .foo and Foo. symbols
   (and (var? x)
        (.isMacro ^clojure.lang.Var x)))
 
@@ -66,6 +67,8 @@
   ;;TODO stick vars & locals and whatnot in here
   {})
 
+;;; Macro Expansion
+
 (defsplice expanded1 [node]
   (let [mac (callee node)
         form (edn/form node)]
@@ -89,6 +92,47 @@
       (recur (expanded1 node))
       (expanded-children node))))
 
+;;; Post-expansion operations
+
+(declare op)
+
+(defn list-op [node]
+  (let [c (callee node)]
+    (if (special-symbol? c)
+      (keyword c)
+      :invoke)))
+
+(defn blah-op [node]
+  (cond
+    (edn/list? node) (list-op node)
+    (edn/composite? node) (:composite @node)
+    ;;TODO edn/tag?
+    :else :constant))
+
+(defmulti -children-ops #'op)
+
+(defmethod -children-ops :let* [node]
+  (let [[_ bindings & statements] (-> node (a/child :items) a/children)]
+    (into {bindings :bindings}
+          (for [statement statements]
+            [statement :statement]))))
+
+(defmethod -children-ops :default [node]
+  ;;TODO probably want to delete this method
+  (println "DEFAULT!!")
+  (prn (op node)))
+
+(defattr children-ops [node]
+  (-children-ops node))
+
+(defattr child-op [node child]
+  ((children-ops node) child))
+
+(defattr op [node]
+  (if (a/root? node)
+    (blah-op node)
+    (child-op (a/parent node) node)))
+
 
 (comment
 
@@ -99,7 +143,11 @@
     '(let [x 1] (let [y 2] (* x y)))
     parse
     expanded
-    edn/form
+    op
+    ;a/first-child
+    ;edn/form
   )
+
+  :return :expr :statement
 
 )
