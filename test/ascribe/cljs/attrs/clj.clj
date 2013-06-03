@@ -114,8 +114,7 @@
 (defmethod -children-ops :let* [node]
   (let [[_ bindings & statements] (-> node (a/child :items) a/children)]
     (into {bindings :bindings}
-          (for [statement statements]
-            [statement :statement]))))
+          (map (juxt identity blah-op) statements))))
 
 (defmethod -children-ops :default [node]
   ;;TODO probably want to delete this method
